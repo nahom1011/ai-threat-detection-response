@@ -1,0 +1,25 @@
+# AI-Powered Threat Detection Dashboard Requirements
+# Python 3.10+ required
+
+# Flask web framework
+Flask>=3.0.0
+Flask-Login>=0.6.3
+Flask-WTF>=1.2.1
+
+# Security
+Werkzeug>=3.0.0
+
+# WSGI server for Windows
+waitress>=2.1.2
+
+# YAML configuration (already in main requirements.txt but listed for clarity)
+PyYAML>=6.0
+
+# Testing
+pytest>=7.4.0
+pytest-mock>=3.11.0
+
+# Note: The dashboard also requires access to the backend modules:
+# - src/response.py
+# - src/config.py
+# These are imported from the existing project, not installed via pip.

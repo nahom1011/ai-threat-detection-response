@@ -1,0 +1,22 @@
+# AI-Powered Threat Detection & Response System
+# Python 3.10+ required
+
+# Core ML dependencies
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+joblib>=1.3.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Configuration
+PyYAML>=6.0
+
+# Windows Service support
+pywin32>=306
+
+# Testing
+pytest>=7.4.0
+pytest-mock>=3.11.0
+
+# Type checking (optional, for development)
+mypy>=1.5.0

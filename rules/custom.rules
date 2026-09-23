@@ -1,0 +1,201 @@
+# AI-Powered Threat Detection & Response System - Custom Suricata Rules
+# Debre Berhan University - Department of IT
+#
+# These rules complement the ML-based detection with signature-based detection
+# for known attack patterns: DoS/DDoS and brute-force attacks.
+#
+# Installation: Add this file to your Suricata configuration:
+#   1. Copy to Suricata rules directory (e.g., C:\Program Files\Suricata\rules\)
+#   2. Add to suricata.yaml under rule-files:
+#      rule-files:
+#        - custom.rules
+#   3. Restart Suricata service
+
+# ============================================================================
+# SYN FLOOD / DoS DETECTION
+# ============================================================================
+
+# Detect excessive SYN packets from a single source (potential SYN flood)
+# Threshold: 100 SYN packets within 10 seconds from same source
+alert tcp any any -> $HOME_NET any (msg:"CUSTOM DoS: Excessive SYN packets - Possible SYN Flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 100, seconds 10; \
+    classtype:attempted-dos; \
+    sid:1000001; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High;)
+
+# Detect excessive connection attempts to single destination (DoS attack)
+# Threshold: 200 connections within 10 seconds to same destination
+alert tcp any any -> $HOME_NET any (msg:"CUSTOM DoS: Excessive connections to single host"; \
+    flags:S; \
+    threshold: type threshold, track by_dst, count 200, seconds 10; \
+    classtype:attempted-dos; \
+    sid:1000002; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High;)
+
+# Detect UDP flood (potential DDoS)
+# Threshold: 500 UDP packets within 10 seconds from same source
+alert udp any any -> $HOME_NET any (msg:"CUSTOM DoS: Excessive UDP packets - Possible UDP Flood"; \
+    threshold: type threshold, track by_src, count 500, seconds 10; \
+    classtype:attempted-dos; \
+    sid:1000003; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High;)
+
+# Detect ICMP flood
+# Threshold: 100 ICMP packets within 10 seconds from same source
+alert icmp any any -> $HOME_NET any (msg:"CUSTOM DoS: Excessive ICMP packets - Possible ICMP Flood"; \
+    threshold: type threshold, track by_src, count 100, seconds 10; \
+    classtype:attempted-dos; \
+    sid:1000004; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity Medium;)
+
+# ============================================================================
+# BRUTE-FORCE ATTACK DETECTION
+# ============================================================================
+
+# SSH Brute Force Detection (port 22)
+# Threshold: 20 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 22 (msg:"CUSTOM Brute-Force: SSH login attempt flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 20, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000010; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service SSH;)
+
+# FTP Brute Force Detection (port 21)
+# Threshold: 20 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 21 (msg:"CUSTOM Brute-Force: FTP login attempt flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 20, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000011; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service FTP;)
+
+# RDP Brute Force Detection (port 3389)
+# Threshold: 15 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 3389 (msg:"CUSTOM Brute-Force: RDP login attempt flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 15, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000012; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service RDP;)
+
+# Telnet Brute Force Detection (port 23)
+# Threshold: 20 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 23 (msg:"CUSTOM Brute-Force: Telnet login attempt flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 20, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000013; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service Telnet;)
+
+# SMB/Windows Shares Brute Force Detection (port 445)
+# Threshold: 30 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 445 (msg:"CUSTOM Brute-Force: SMB/Windows shares access flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 30, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000014; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service SMB;)
+
+# MySQL Brute Force Detection (port 3306)
+# Threshold: 25 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 3306 (msg:"CUSTOM Brute-Force: MySQL database login flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 25, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000015; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service MySQL;)
+
+# PostgreSQL Brute Force Detection (port 5432)
+# Threshold: 25 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 5432 (msg:"CUSTOM Brute-Force: PostgreSQL database login flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 25, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000016; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service PostgreSQL;)
+
+# MSSQL Brute Force Detection (port 1433)
+# Threshold: 25 connection attempts within 60 seconds from same source
+alert tcp any any -> $HOME_NET 1433 (msg:"CUSTOM Brute-Force: MSSQL database login flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 25, seconds 60; \
+    classtype:attempted-admin; \
+    sid:1000017; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity High, service MSSQL;)
+
+# HTTP/HTTPS Web Login Brute Force Detection (ports 80, 443)
+# Threshold: 50 connection attempts within 60 seconds from same source
+# This catches repeated POST requests that might indicate login attempts
+alert tcp any any -> $HOME_NET [80,443] (msg:"CUSTOM Brute-Force: Web application login flood"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 50, seconds 60; \
+    classtype:web-application-attack; \
+    sid:1000018; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity Medium, service HTTP;)
+
+# ============================================================================
+# PORT SCANNING DETECTION
+# ============================================================================
+
+# Detect horizontal port scan (many ports on same host)
+# Threshold: 20 different destination ports within 10 seconds
+alert tcp any any -> $HOME_NET any (msg:"CUSTOM Scan: Horizontal port scan detected"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 20, seconds 10; \
+    classtype:attempted-recon; \
+    sid:1000020; \
+    rev:1; \
+    metadata:attack_target Server, deployment Internal, severity Medium;)
+
+# Detect vertical scan (same port across many hosts)
+# This requires more sophisticated detection; basic version here
+alert tcp any any -> $HOME_NET any (msg:"CUSTOM Scan: Possible network scan activity"; \
+    flags:S; \
+    threshold: type threshold, track by_src, count 100, seconds 30; \
+    classtype:attempted-recon; \
+    sid:1000021; \
+    rev:1; \
+    metadata:attack_target Network, deployment Internal, severity Low;)
+
+# ============================================================================
+# NOTES FOR TUNING
+# ============================================================================
+#
+# These thresholds are starting points and should be tuned based on:
+# 1. Your network's normal traffic patterns
+# 2. False positive rate observed in production
+# 3. Specific services running in your environment
+#
+# To adjust thresholds:
+# - Increase count/decrease time window for stricter detection (more false positives)
+# - Decrease count/increase time window for looser detection (fewer false positives)
+#
+# To disable a rule:
+# - Change "alert" to "pass" or comment out the entire rule with #
+#
+# To test rules:
+# - Run: suricata -T -c C:\Program Files\Suricata\suricata.yaml
+# - Check for syntax errors in the output
+#
+# SID (Signature ID) ranges:
+# - 1000001-1000009: DoS/DDoS attacks
+# - 1000010-1000019: Brute-force attacks
+# - 1000020-1000029: Scanning/reconnaissance
+# - 1000030+: Reserved for future rules
+#
+# ============================================================================

@@ -1,0 +1,60 @@
+# AI-Powered Threat Detection & Response System Configuration
+# Debre Berhan University - Department of IT
+
+# Suricata Configuration
+suricata:
+  eve_json_path: 'C:\Suricata\log\eve.json'
+  # Adjust the above path based on your actual Suricata installation
+
+# Model Configuration
+model:
+  xgboost_path: "models/xgboost.joblib"
+  scaler_path: "models/scaler.joblib"
+  confidence_threshold: 0.85  # Fixed threshold - do not change without approval
+
+# Response Configuration
+response:
+  # IPs that should never be blocked (admin workstations, critical infrastructure)
+  whitelist:
+    - "127.0.0.1"
+    - "::1"
+    - "10.0.0.1"  # Example: Default gateway
+    - "192.168.1.1"  # Example: Admin workstation
+  
+  # Default block duration in seconds (1 hour)
+  default_block_ttl: 3600
+  
+  # Firewall rule name prefix
+  firewall_rule_prefix: "AIThreatDefense_Block_"
+  
+  # Cleanup interval for expired blocks (seconds)
+  cleanup_interval: 300  # Run cleanup every 5 minutes
+
+# Alert Configuration
+alerts:
+  smtp_enabled: false  # Set to true to enable email alerts
+  smtp_server: "smtp.example.com"
+  smtp_port: 587
+  smtp_use_tls: true
+  smtp_username: ""  # Set via SMTP_USERNAME environment variable
+  smtp_password: ""  # Set via SMTP_PASSWORD environment variable
+  alert_from: "threat-defense@example.com"
+  alert_to:
+    - "admin@example.com"
+    - "security@example.com"
+
+# Database Configuration
+database:
+  path: "data/threat_defense.db"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file: "logs/threat_defense.log"
+  max_bytes: 10485760  # 10 MB
+  backup_count: 5
+
+# Performance Configuration
+performance:
+  max_flow_latency_ms: 100  # Warn if processing takes longer than this
+  batch_size: 1  # Process flows one at a time for real-time response

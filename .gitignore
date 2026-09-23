@@ -1,0 +1,85 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database files (sensitive data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# Models (large files)
+models/*.joblib
+models/*.pkl
+models/*.h5
+models/*.pt
+
+# Suricata logs
+C:/Program Files/Suricata/log/
+
+# Network captures
+*.pcap
+*.pcapng
+
+# CSV data files (large)
+*.csv
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+
+# Secret keys
+*.pem
+*.key
+
+# Word documents (project documentation - keep these if needed)
+# *.docx
+
+# Test/debug scripts
+test_*.py
+debug_*.py
+check_*.py

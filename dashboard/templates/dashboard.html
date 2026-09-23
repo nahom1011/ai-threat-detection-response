@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Threat Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>AI THREAT DETECTION & RESPONSE</h1>
+                <p class="subtitle">Debre Berhan University - Department of IT</p>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span class="username">{{ username }}</span>
+                    <span class="role badge badge-{{ 'admin' if is_admin else 'analyst' }}">
+                        {{ 'Administrator' if is_admin else 'Security Analyst' }}
+                    </span>
+                </div>
+                <form method="POST" action="{{ url_for('logout') }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-secondary">Logout</button>
+                </form>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <h3>Packets Analyzed</h3>
+                    <p class="stat-value" id="stat-packets">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-content">
+                    <h3>Active Threats</h3>
+                    <p class="stat-value" id="stat-threats">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <h3>Traffic Volume</h3>
+                    <p class="stat-value" id="stat-traffic">0 MB</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🚫</div>
+                <div class="stat-content">
+                    <h3>Blocked IPs</h3>
+                    <p class="stat-value" id="stat-blocked">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Network Feed Section -->
+        <section class="dashboard-section">
+            <h2>🔴 Live Network Feed</h2>
+            <p class="section-subtitle">Real-time packet capture - updates every 3 seconds</p>
+            
+            <div class="live-feed-controls">
+                <button id="pause-feed" class="btn btn-sm btn-secondary">
+                    <span id="pause-icon">⏸️</span> Pause
+                </button>
+                <button id="clear-feed" class="btn btn-sm btn-secondary">
+                    🗑️ Clear
+                </button>
+                <span class="live-indicator">
+                    <span class="pulse-dot"></span> LIVE
+                </span>
+            </div>
+            
+            <div class="live-feed-container" id="live-feed">
+                <div class="live-feed-item loading">
+                    <span>Waiting for network data...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Network Activity Monitor Section -->
+        <section class="dashboard-section">
+            <h2>Network Activity Monitor</h2>
+            <p class="section-subtitle">All network flows analyzed by AI - benign and malicious</p>
+            <div class="table-container">
+                <table class="data-table" id="alerts-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Source IP</th>
+                            <th>Destination</th>
+                            <th>Classification</th>
+                            <th>Confidence</th>
+                            <th>Status</th>
+                            {% if is_admin %}
+                            <th>Action</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody id="alerts-tbody">
+                        <tr>
+                            <td colspan="{{ '7' if is_admin else '6' }}" class="loading">
+                                Loading alerts...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Response Action History -->
+        <section class="dashboard-section">
+            <h2>Response Action History</h2>
+            <div class="table-container">
+                <table class="data-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Action</th>
+                            <th>IP Address</th>
+                            <th>Actor</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        <tr>
+                            <td colspan="5" class="loading">
+                                Loading history...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <p>Last updated: <span id="last-updated">Never</span></p>
+            <p id="connection-status" class="status-ok">● Connected to detection engine</p>
+        </footer>
+    </div>
+
+    <script>
+        // Pass user role to JavaScript
+        window.USER_IS_ADMIN = {{ 'true' if is_admin else 'false' }};
+        
+        // Get CSRF token from meta tag
+        window.CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    </script>
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>
