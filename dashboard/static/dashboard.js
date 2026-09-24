@@ -171,7 +171,7 @@ function renderAlerts(alerts) {
     }
     
     tbody.innerHTML = alerts.map(alert => {
-        const time = formatTimestamp(alert.timestamp);
+        const time = formatFullTimestamp(alert.timestamp); // Use full timestamp with date
         const destination = `${alert.destination_ip}:${alert.destination_port}`;
         const confidence = Math.round(alert.score * 100);
         const statusClass = getStatusClass(alert.status);
@@ -182,11 +182,17 @@ function renderAlerts(alerts) {
             classification = 'Normal Traffic';
         }
         
+        // Format process info
+        const processName = alert.process_name || 'Unknown';
+        const pid = alert.pid || 'N/A';
+        const appDisplay = processName !== 'Unknown' ? `${processName} (${pid})` : 'Unknown';
+        
         let row = `
             <tr class="flow-row flow-${statusClass}">
                 <td>${time}</td>
                 <td class="mono">${escapeHtml(alert.source_ip)}</td>
                 <td class="mono">${escapeHtml(destination)}</td>
+                <td class="app-name">${escapeHtml(appDisplay)}</td>
                 <td>${escapeHtml(classification)}</td>
                 <td>
                     <span class="confidence confidence-${statusClass}">${confidence}%</span>
@@ -369,15 +375,22 @@ function formatBytes(bytes) {
 }
 
 /**
- * Format ISO timestamp to readable string
+ * Format ISO timestamp to readable string (time only)
  */
 function formatTimestamp(isoString) {
     if (!isoString) return 'N/A';
     
     try {
-        const date = new Date(isoString);
+        // Ensure UTC timestamp is properly parsed
+        // If no 'Z' suffix, add it to indicate UTC
+        let timestamp = isoString;
+        if (!timestamp.endsWith('Z') && !timestamp.includes('+')) {
+            timestamp = timestamp + 'Z';
+        }
         
-        // Format: HH:MM:SS
+        const date = new Date(timestamp);
+        
+        // Format: HH:MM:SS in local timezone
         return date.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit',
@@ -385,6 +398,38 @@ function formatTimestamp(isoString) {
             hour12: false
         });
     } catch (error) {
+        console.error('Error formatting timestamp:', error);
+        return 'Invalid';
+    }
+}
+
+/**
+ * Format ISO timestamp to full date and time
+ */
+function formatFullTimestamp(isoString) {
+    if (!isoString) return 'N/A';
+    
+    try {
+        // Ensure UTC timestamp is properly parsed
+        let timestamp = isoString;
+        if (!timestamp.endsWith('Z') && !timestamp.includes('+')) {
+            timestamp = timestamp + 'Z';
+        }
+        
+        const date = new Date(timestamp);
+        
+        // Format: YYYY-MM-DD HH:MM:SS in local timezone
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    } catch (error) {
+        console.error('Error formatting full timestamp:', error);
         return 'Invalid';
     }
 }
@@ -512,7 +557,13 @@ function createLiveFeedItem(flow) {
     const item = document.createElement('div');
     item.className = 'live-feed-item';
     
-    const time = new Date(flow.timestamp).toLocaleTimeString('en-US', {
+    // Ensure UTC timestamp is properly parsed
+    let timestamp = flow.timestamp;
+    if (!timestamp.endsWith('Z') && !timestamp.includes('+')) {
+        timestamp = timestamp + 'Z';
+    }
+    
+    const time = new Date(timestamp).toLocaleTimeString('en-US', {
         hour12: false,
         hour: '2-digit',
         minute: '2-digit',
@@ -534,12 +585,17 @@ function createLiveFeedItem(flow) {
     
     const scorePercent = Math.round(score * 100);
     
+    // Format process info
+    const processName = flow.process_name || 'Unknown';
+    const appDisplay = processName !== 'Unknown' ? `[${processName}]` : '';
+    
     item.innerHTML = `
         <span class="feed-time">${time}</span>
         <span class="mono">${escapeHtml(flow.source_ip)}</span>
         <span class="feed-arrow">→</span>
         <span class="mono">${escapeHtml(flow.destination_ip)}:${flow.destination_port}</span>
         <span class="feed-protocol">${escapeHtml(flow.protocol || 'TCP')}</span>
+        <span class="feed-app">${escapeHtml(appDisplay)}</span>
         <span class="feed-score ${scoreClass}">${scoreLabel} ${scorePercent}%</span>
     `;
     

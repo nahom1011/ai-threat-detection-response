@@ -263,7 +263,9 @@ class ResponseManager:
         action_taken: str,
         src_port: Optional[int] = None,
         dest_port: Optional[int] = None,
-        proto: Optional[str] = None
+        proto: Optional[str] = None,
+        process_name: Optional[str] = None,
+        pid: Optional[str] = None
     ) -> None:
         """
         Log a scored flow to the database for analysis.
@@ -277,16 +279,18 @@ class ResponseManager:
             src_port: Source port
             dest_port: Destination port
             proto: Protocol (TCP/UDP/etc)
+            process_name: Name of the process making the connection
+            pid: Process ID
         """
         timestamp = datetime.utcnow().isoformat()
         
         self._execute_db_query(
             """
             INSERT INTO flow_scores 
-            (timestamp, src_ip, dest_ip, src_port, dest_port, proto, score, prediction, action_taken)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (timestamp, src_ip, dest_ip, src_port, dest_port, proto, score, prediction, action_taken, process_name, pid)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (timestamp, src_ip, dest_ip, src_port, dest_port, proto, score, prediction, action_taken)
+            (timestamp, src_ip, dest_ip, src_port, dest_port, proto, score, prediction, action_taken, process_name, pid)
         )
     
     def is_whitelisted(self, ip: str) -> bool:

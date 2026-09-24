@@ -22,6 +22,7 @@ from config import load_config, Config
 from suricata_watcher import SuricataWatcher
 from feature_extractor import FeatureExtractor
 from response import ResponseManager
+from process_resolver import ProcessResolver
 
 
 # Setup logging
@@ -185,6 +186,10 @@ class DecisionEngine:
             event_types=['flow']  # Only watch flow events
         )
         
+        # Initialize process resolver
+        logger.info("Initializing process resolver...")
+        self.process_resolver = ProcessResolver(cache_ttl=30)
+        
         # Performance tracking
         self.perf = PerformanceTracker(
             warn_threshold_ms=config.performance.max_flow_latency_ms
@@ -307,6 +312,18 @@ class DecisionEngine:
                     f"Prediction: {prediction_label}"
                 )
             
+            # Resolve process information for the connection
+            process_info = self.process_resolver.get_process_for_connection(
+                local_ip=src_ip,
+                local_port=src_port,
+                remote_ip=dest_ip,
+                remote_port=dest_port,
+                protocol=proto
+            )
+            
+            process_name = process_info['process'] if process_info else None
+            pid = process_info['pid'] if process_info else None
+            
             # Log the scored flow for analysis
             self.response.log_flow_score(
                 src_ip=src_ip,
@@ -316,7 +333,9 @@ class DecisionEngine:
                 action_taken=action_taken,
                 src_port=src_port,
                 dest_port=dest_port,
-                proto=proto
+                proto=proto,
+                process_name=process_name,
+                pid=pid
             )
             
         except Exception as e:

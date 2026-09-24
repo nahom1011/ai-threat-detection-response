@@ -163,7 +163,9 @@ class DashboardAPI:
                     proto,
                     score,
                     prediction,
-                    action_taken
+                    action_taken,
+                    process_name,
+                    pid
                 FROM flow_scores
                 ORDER BY timestamp DESC
                 LIMIT ?
@@ -218,7 +220,9 @@ class DashboardAPI:
                     'score': float(score),
                     'status': status,
                     'attack_type': attack_type,
-                    'action': action
+                    'action': action,
+                    'process_name': row['process_name'] or 'Unknown',
+                    'pid': row['pid'] or 'N/A'
                 })
             
             return alerts
