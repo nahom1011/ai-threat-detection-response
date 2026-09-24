@@ -283,6 +283,9 @@ class ResponseManager:
             pid: Process ID
         """
         timestamp = datetime.utcnow().isoformat()
+        # Explicitly cast to Python float — numpy scalars (float32/float64)
+        # are stored as BLOB by sqlite3, breaking all numeric SQL comparisons.
+        score_float = float(score)
         
         self._execute_db_query(
             """
@@ -290,7 +293,7 @@ class ResponseManager:
             (timestamp, src_ip, dest_ip, src_port, dest_port, proto, score, prediction, action_taken, process_name, pid)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (timestamp, src_ip, dest_ip, src_port, dest_port, proto, score, prediction, action_taken, process_name, pid)
+            (timestamp, src_ip, dest_ip, src_port, dest_port, proto, score_float, prediction, action_taken, process_name, pid)
         )
     
     def is_whitelisted(self, ip: str) -> bool:
@@ -409,29 +412,29 @@ class ResponseManager:
                 logger.error(f"Error executing firewall command: {e}")
                 success = False
         
-        if success:
-            # Record the block
-            blocked_at = datetime.utcnow()
-            expires_at = blocked_at + timedelta(seconds=ttl)
-            
-            self._execute_db_query(
-                """
-                INSERT INTO active_blocks (ip, blocked_at, expires_at, reason, actor, score)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (ip, blocked_at.isoformat(), expires_at.isoformat(), 
-                 reason, actor, score)
-            )
-            
-            self._log_audit('BLOCK', ip, actor, reason, score, 
-                          f"TTL={ttl}s, Expires={expires_at.isoformat()}")
-            
-            logger.warning(
-                f"BLOCKED IP: {ip} | Reason: {reason} | "
-                f"Score: {score} | TTL: {ttl}s"
-            )
+        # Always record the block in the database for the dashboard,
+        # even if the firewall command failed (e.g. running without Admin rights)
+        blocked_at = datetime.utcnow()
+        expires_at = blocked_at + timedelta(seconds=ttl)
         
-        return success
+        self._execute_db_query(
+            """
+            INSERT INTO active_blocks (ip, blocked_at, expires_at, reason, actor, score)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (ip, blocked_at.isoformat(), expires_at.isoformat(), 
+             reason, actor, score)
+        )
+        
+        self._log_audit('BLOCK', ip, actor, reason, score, 
+                      f"TTL={ttl}s, Expires={expires_at.isoformat()}, Firewall_Success={success}")
+        
+        logger.warning(
+            f"BLOCKED IP: {ip} | Reason: {reason} | "
+            f"Score: {score} | TTL: {ttl}s | Firewall_Success={success}"
+        )
+        
+        return True
     
     def _update_block_expiry(self, ip: str, additional_ttl: int) -> bool:
         """

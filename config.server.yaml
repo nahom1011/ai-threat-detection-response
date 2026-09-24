@@ -1,0 +1,249 @@
+# AI-Powered Threat Detection System - Server Configuration
+# Copy this to config.yaml and customize for your server
+
+# Suricata IDS configuration
+suricata:
+  # Path to Suricata's EVE JSON log file
+  # Update this to match your Suricata installation
+  eve_json_path: "C:/Program Files/Suricata/log/eve.json"
+  
+  # Network interface to monitor
+  # Get interface name with: Get-NetAdapter
+  interface: "Ethernet"  # CHANGE THIS to your server's network interface
+  
+  # Suricata configuration file path
+  config_path: "C:/Program Files/Suricata/suricata.yaml"
+
+# Machine Learning model configuration
+model:
+  # Path to trained XGBoost model
+  xgboost_path: "models/xgboost.joblib"
+  
+  # Path to fitted StandardScaler
+  scaler_path: "models/scaler.joblib"
+  
+  # Confidence threshold for automated blocking
+  # Only flows with score >= this value will be blocked
+  confidence_threshold: 0.85  # 85% confidence
+  
+  # Feature columns (must match training data)
+  feature_columns:
+    - "Flow Duration"
+    - "Total Fwd Packets"
+    - "Total Backward Packets"
+    - "Total Length of Fwd Packets"
+    - "Total Length of Bwd Packets"
+    - "Flow Bytes/s"
+    - "Flow Packets/s"
+    - "Protocol"
+
+# Network configuration for server deployment
+network:
+  # Protected networks (your servers)
+  # Traffic to/from these networks will be monitored
+  protected_networks:
+    - "192.168.1.0/24"   # CHANGE THIS to your internal network
+    - "10.0.0.0/8"       # CHANGE THIS to your private network
+    # - "YOUR_PUBLIC_IP"  # Add your server's public IP
+  
+  # Promiscuous mode (capture all network traffic, not just directed to this host)
+  promiscuous: true
+  
+  # Monitoring mode
+  # "gateway" - Monitor traffic passing through (for firewall/gateway servers)
+  # "host" - Monitor only traffic to/from this host
+  mode: "gateway"
+
+# Response and blocking configuration
+response:
+  # IP addresses that should NEVER be blocked (whitelist)
+  # Add your admin IPs, gateways, and trusted servers
+  whitelist:
+    - "127.0.0.1"                    # Localhost
+    - "192.168.1.1"                  # CHANGE THIS to your gateway IP
+    - "YOUR_ADMIN_IP"                # CHANGE THIS to your management IP
+    # - "192.168.1.0/24"             # Uncomment to whitelist entire subnet
+    # - "10.0.0.0/8"                 # Uncomment for private network
+  
+  # Default block duration in seconds
+  # After this time, blocks expire automatically
+  default_block_ttl: 3600  # 1 hour (3600 seconds)
+  
+  # Firewall rule prefix for identifying our rules
+  firewall_rule_prefix: "ThreatBlock"
+  
+  # Cleanup interval (check for expired blocks)
+  cleanup_interval: 300  # 5 minutes (300 seconds)
+  
+  # Maximum simultaneous blocks
+  # Prevents memory issues with too many firewall rules
+  max_concurrent_blocks: 1000
+
+# Alert notification configuration
+alerts:
+  # Enable/disable email alerts
+  smtp_enabled: false  # Set to true to enable email alerts
+  
+  # SMTP server configuration
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
+  smtp_use_tls: true
+  
+  # SMTP authentication
+  # IMPORTANT: Use environment variables for passwords!
+  # Set: $env:SMTP_USERNAME = "your-email@gmail.com"
+  # Set: $env:SMTP_PASSWORD = "your-app-password"
+  smtp_username: ""  # Leave empty to use environment variable
+  smtp_password: ""  # Leave empty to use environment variable
+  
+  # Email addresses
+  alert_from: "security@yourdomain.com"
+  alert_to:
+    - "admin@yourdomain.com"
+    # - "security-team@yourdomain.com"
+    # - "soc@yourdomain.com"
+  
+  # Alert threshold (only send alerts for high-confidence detections)
+  alert_threshold: 0.90  # 90% confidence
+
+# Database configuration
+database:
+  # Path to SQLite database
+  path: "data/threat_defense.db"
+  
+  # Connection timeout
+  timeout: 30
+  
+  # Enable WAL mode (better for concurrent access)
+  wal_mode: true
+  
+  # Backup configuration
+  backup:
+    enabled: true
+    interval: 86400  # Daily (in seconds)
+    retention_days: 30  # Keep backups for 30 days
+    path: "data/backups/"
+
+# Dashboard configuration
+dashboard:
+  # Host to bind to
+  # "127.0.0.1" - Only accessible from localhost
+  # "0.0.0.0" - Accessible from network
+  host: "0.0.0.0"  # For server deployment
+  
+  # Port to listen on
+  port: 5000
+  
+  # Public URL (for links in emails, etc.)
+  public_url: "http://YOUR_SERVER_IP:5000"  # CHANGE THIS
+  
+  # Session configuration
+  session_timeout: 3600  # 1 hour
+  
+  # Security
+  enable_https: false  # Set to true in production with SSL certificates
+  ssl_cert_path: ""
+  ssl_key_path: ""
+
+# Logging configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  
+  # Log file path
+  file: "logs/threat_detection.log"
+  
+  # Log rotation
+  max_bytes: 10485760  # 10 MB
+  backup_count: 10
+  
+  # Format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Performance tuning
+performance:
+  # Number of worker threads for processing
+  worker_threads: 4
+  
+  # Flow processing queue size
+  queue_size: 1000
+  
+  # Batch size for database operations
+  batch_size: 100
+  
+  # Memory limit (MB)
+  memory_limit: 1024  # 1 GB
+
+# Deployment-specific settings
+deployment:
+  # Environment: "development", "staging", "production"
+  environment: "production"
+  
+  # Service name (for Windows service)
+  service_name: "ThreatDetectionEngine"
+  
+  # Service display name
+  service_display_name: "AI-Powered Threat Detection & Response System"
+  
+  # Service description
+  service_description: "Machine learning-based network threat detection and automated response system"
+  
+  # Auto-start on boot
+  auto_start: true
+  
+  # Restart on failure
+  restart_on_failure: true
+  
+  # Health check interval (seconds)
+  health_check_interval: 60
+
+# Feature flags
+features:
+  # Enable/disable specific features
+  auto_blocking: true
+  email_alerts: false
+  api_endpoints: true
+  dashboard: true
+  audit_logging: true
+  
+  # Experimental features (use with caution)
+  experimental:
+    ml_retraining: false
+    adaptive_thresholds: false
+    geo_blocking: false
+
+# Integration settings
+integrations:
+  # SIEM integration (for enterprise environments)
+  siem:
+    enabled: false
+    type: "syslog"  # syslog, splunk, elasticsearch
+    host: "siem.yourdomain.com"
+    port: 514
+    protocol: "tcp"
+  
+  # Threat intelligence feeds
+  threat_intel:
+    enabled: false
+    sources:
+      # - "https://rules.emergingthreats.net/blockrules/compromised-ips.txt"
+      # - "https://lists.blocklist.de/lists/all.txt"
+    update_interval: 3600  # 1 hour
+  
+  # Metrics and monitoring
+  metrics:
+    enabled: false
+    type: "prometheus"  # prometheus, influxdb, graphite
+    port: 9090
+    endpoint: "/metrics"
+
+# Notes for server deployment:
+# 
+# 1. Update all "CHANGE THIS" values with your actual configuration
+# 2. Set environment variables for sensitive data (passwords, keys)
+# 3. Test configuration with: python -c "from src.config import load_config; load_config('config.yaml')"
+# 4. For production, enable HTTPS and use strong passwords
+# 5. Configure firewall rules to allow dashboard access
+# 6. Set up automated backups of the database
+# 7. Monitor logs regularly: Get-Content logs/threat_detection.log -Tail 100
+# 8. See DEPLOYMENT_GUIDE.md for complete deployment instructions

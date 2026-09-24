@@ -708,19 +708,3 @@ body {
         padding: var(--spacing-md);
     }
 }
-
-
-/* Application name column styling */
-.app-name {
-    font-family: 'Courier New', Consolas, monospace;
-    font-size: 0.9em;
-    color: #4a90e2;
-    font-weight: 500;
-}
-
-.feed-app {
-    color: #888;
-    font-size: 0.85em;
-    font-style: italic;
-    margin: 0 8px;
-}

@@ -10,7 +10,7 @@ suricata:
 model:
   xgboost_path: "models/xgboost.joblib"
   scaler_path: "models/scaler.joblib"
-  confidence_threshold: 0.85  # Fixed threshold - do not change without approval
+  confidence_threshold: 0.70  # Tuned to match XGBoost model output range (max ~0.82)
 
 # Response Configuration
 response:

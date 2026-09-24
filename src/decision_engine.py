@@ -18,11 +18,18 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import numpy as np
 
-from config import load_config, Config
-from suricata_watcher import SuricataWatcher
-from feature_extractor import FeatureExtractor
-from response import ResponseManager
-from process_resolver import ProcessResolver
+try:
+    from config import load_config, Config
+    from suricata_watcher import SuricataWatcher
+    from feature_extractor import FeatureExtractor
+    from response import ResponseManager
+    from process_resolver import ProcessResolver
+except ImportError:
+    from .config import load_config, Config
+    from .suricata_watcher import SuricataWatcher
+    from .feature_extractor import FeatureExtractor
+    from .response import ResponseManager
+    from .process_resolver import ProcessResolver
 
 
 # Setup logging

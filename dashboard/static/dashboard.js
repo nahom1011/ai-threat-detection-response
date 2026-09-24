@@ -182,17 +182,11 @@ function renderAlerts(alerts) {
             classification = 'Normal Traffic';
         }
         
-        // Format process info
-        const processName = alert.process_name || 'Unknown';
-        const pid = alert.pid || 'N/A';
-        const appDisplay = processName !== 'Unknown' ? `${processName} (${pid})` : 'Unknown';
-        
         let row = `
             <tr class="flow-row flow-${statusClass}">
                 <td>${time}</td>
                 <td class="mono">${escapeHtml(alert.source_ip)}</td>
                 <td class="mono">${escapeHtml(destination)}</td>
-                <td class="app-name">${escapeHtml(appDisplay)}</td>
                 <td>${escapeHtml(classification)}</td>
                 <td>
                     <span class="confidence confidence-${statusClass}">${confidence}%</span>
@@ -585,17 +579,12 @@ function createLiveFeedItem(flow) {
     
     const scorePercent = Math.round(score * 100);
     
-    // Format process info
-    const processName = flow.process_name || 'Unknown';
-    const appDisplay = processName !== 'Unknown' ? `[${processName}]` : '';
-    
     item.innerHTML = `
         <span class="feed-time">${time}</span>
         <span class="mono">${escapeHtml(flow.source_ip)}</span>
         <span class="feed-arrow">→</span>
         <span class="mono">${escapeHtml(flow.destination_ip)}:${flow.destination_port}</span>
         <span class="feed-protocol">${escapeHtml(flow.protocol || 'TCP')}</span>
-        <span class="feed-app">${escapeHtml(appDisplay)}</span>
         <span class="feed-score ${scoreClass}">${scoreLabel} ${scorePercent}%</span>
     `;
     

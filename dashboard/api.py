@@ -89,11 +89,17 @@ class DashboardAPI:
             
             # Active threats (flows with score >= 0.85)
             # Need to handle score conversion for comparison
-            cursor.execute("SELECT score FROM flow_scores")
-            scores = cursor.fetchall()
+            cursor.execute("SELECT score FROM flow_scores ORDER BY timestamp DESC LIMIT 1000")
+            
+            scores = []
+            try:
+                scores = cursor.fetchall()
+            except Exception as db_err:
+                logger.warning(f"Stopped fetching scores due to error (DB may be malformed): {db_err}")
+                
             active_threats = 0
             for row in scores:
-                score_raw = row[0]
+                score_raw = row['score'] if hasattr(row, 'keys') else row[0]
                 try:
                     if isinstance(score_raw, bytes):
                         import struct
@@ -163,9 +169,7 @@ class DashboardAPI:
                     proto,
                     score,
                     prediction,
-                    action_taken,
-                    process_name,
-                    pid
+                    action_taken
                 FROM flow_scores
                 ORDER BY timestamp DESC
                 LIMIT ?
@@ -220,9 +224,7 @@ class DashboardAPI:
                     'score': float(score),
                     'status': status,
                     'attack_type': attack_type,
-                    'action': action,
-                    'process_name': row['process_name'] or 'Unknown',
-                    'pid': row['pid'] or 'N/A'
+                    'action': action
                 })
             
             return alerts
@@ -264,13 +266,27 @@ class DashboardAPI:
             
             history = []
             for row in rows:
+                score_raw = row['score']
+                if isinstance(score_raw, bytes):
+                    import struct
+                    if len(score_raw) == 4:
+                        score = struct.unpack('f', score_raw)[0]
+                    elif len(score_raw) == 8:
+                        score = struct.unpack('d', score_raw)[0]
+                    else:
+                        score = 0.0
+                elif isinstance(score_raw, str):
+                    score = float(score_raw)
+                else:
+                    score = float(score_raw) if score_raw is not None else None
+
                 history.append({
                     'timestamp': row['timestamp'],
                     'action': row['action'],
                     'ip': row['ip'],
                     'actor': row['actor'],
                     'reason': row['reason'] or 'N/A',
-                    'score': row['score'] if row['score'] is not None else None
+                    'score': score
                 })
             
             return history

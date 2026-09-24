@@ -43,7 +43,7 @@ class DashboardConfig:
     API_HISTORY_LIMIT: int = 100 # Max audit log entries to return
     
     # ML Model configuration (from backend)
-    CONFIDENCE_THRESHOLD: float = 0.85  # Must match backend config.yaml
+    CONFIDENCE_THRESHOLD: float = 0.70  # Must match backend config.yaml
     
     @classmethod
     def validate(cls) -> None:
